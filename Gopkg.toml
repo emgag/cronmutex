@@ -19,15 +19,7 @@
 #  name = "github.com/x/y"
 #  version = "2.4.0"
 
-
-[[constraint]]
-  name = "github.com/urfave/cli"
-  version = "1.20.0"
-
 [[constraint]]
   name = "gopkg.in/redsync.v1"
   version = "1.0.1"
 
-[[constraint]]
-  branch = "v2"
-  name = "gopkg.in/yaml.v2"
