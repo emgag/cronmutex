@@ -6,7 +6,9 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/emgag/cronmutex/internal/lib"
@@ -19,13 +21,20 @@ var cfgFile string
 
 var rootCmd = &cobra.Command{
 	Use:   "cronmutex [flags] MUTEX-NAME COMMAND",
-	Short: "Distributed mutex to prevent running commands on multiple machines.",
+	Short: "Redis-backed mutex to prevent running commands on multiple machines.",
 	Args:  cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		options := lib.Options{}
 		err := viper.Unmarshal(&options)
+
+		if err != nil {
+			log.Print(err)
+			return
+		}
+
 		verbose, _ := cmd.Flags().GetBool("verbose")
 
+		// exit code handling
 		exitCode := 0
 		defer func() {
 			if verbose {
@@ -33,13 +42,7 @@ var rootCmd = &cobra.Command{
 			}
 
 			os.Exit(exitCode)
-
 		}()
-
-		if err != nil {
-			log.Print(err)
-			return
-		}
 
 		if wait, err := cmd.Flags().GetInt32("random-wait"); err == nil && wait > 0 {
 			waitms := rand.Int31n(wait * 1000)
@@ -64,7 +67,7 @@ var rootCmd = &cobra.Command{
 
 		mutexTTL := time.Duration(options.Mutex.DefaultTTL) * time.Second
 
-		if ttl, err := cmd.Flags().GetInt("mutex-ttl"); err != nil && ttl > 0 {
+		if ttl, err := cmd.Flags().GetInt("mutex-ttl"); err == nil && ttl > 0 {
 			mutexTTL = time.Duration(ttl) * time.Second
 		}
 
@@ -148,13 +151,33 @@ var rootCmd = &cobra.Command{
 			done <- ex.Wait()
 		}()
 
-		tick := time.Tick(mutexTTL - 250*time.Millisecond)
+		// extend ttl if command runs for longer
+		extend := time.Tick(mutexTTL - 250*time.Millisecond)
+
+		// clear extend channel if no extending required
+		if ff, err := cmd.Flags().GetBool("fire-n-forget"); err == nil && ff == true {
+			extend = nil
+		}
+
+		// command timeout channel
 		timeout := time.After(cmdTTL)
 
 		// clear timeout channel if no ttl for command is set
 		if cmdTTL == 0 {
 			timeout = nil
 		}
+
+		// signal handling
+		sigs := make(chan os.Signal, 1)
+		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+		go func() {
+			sig := <-sigs
+			if verbose {
+				log.Printf("Received signal %v", sig)
+			}
+			done <- nil
+		}()
 
 	status:
 		for {
@@ -175,7 +198,7 @@ var rootCmd = &cobra.Command{
 
 				ex.Process.Kill()
 
-			case <-tick:
+			case <-extend:
 				// still running, extend TTL
 				if verbose {
 					log.Println("Extending TTL")
@@ -183,7 +206,6 @@ var rootCmd = &cobra.Command{
 
 				mutex.Extend()
 			}
-
 		}
 	},
 }
@@ -191,7 +213,7 @@ var rootCmd = &cobra.Command{
 // Execute adds all child commands to the root command and sets flags appropriately.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		log.Fatal(err)
+		os.Exit(1)
 	}
 }
 
@@ -199,12 +221,12 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is /etc/cronmutex.yml)")
 
-	rootCmd.Flags().Bool("fire-n-forget", false, "Don't hold (extend) the lock while the command is running")
-	rootCmd.Flags().Int("mutex-ttl", 0, "The TTL of the lock in X seconds")
-	rootCmd.Flags().Bool("noout", false, "Don't dump STDOUT and STDERR from command")
-	rootCmd.Flags().Int32("random-wait", 0, "Wait for a random time between 0 and X seconds before acquiring the lock and starting the command")
-	rootCmd.Flags().Int("ttl", 0, "Kill command after X seconds. Default is to wait until the command finishes by itself")
-	rootCmd.Flags().Bool("verbose", false, "Tell what's happening with cronmutex")
+	rootCmd.Flags().BoolP("fire-n-forget","f", false, "Don't hold (extend) the lock while the command is running")
+	rootCmd.Flags().IntP("mutex-ttl", "m", 0, "The TTL of the lock in X seconds")
+	rootCmd.Flags().BoolP("noout", "n", false, "Don't dump STDOUT and STDERR from command")
+	rootCmd.Flags().Int32P("random-wait", "w", 0, "Wait for a random time between 0 and X seconds before acquiring the lock and starting the command")
+	rootCmd.Flags().IntP("ttl", "t", 0, "Kill command after X seconds. Default is to wait until the command finishes by itself")
+	rootCmd.Flags().BoolP("verbose", "v", false, "Tell what's happening with cronmutex")
 }
 
 // initConfig reads in config file and ENV variables if set.

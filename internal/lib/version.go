@@ -1,3 +1,5 @@
 package lib
 
-const V = 1
+// Version contains the version of cronmutex
+var Version string
+

@@ -6,6 +6,7 @@ import (
 	"github.com/garyburd/redigo/redis"
 )
 
+// NewRedisConn creates new redis pool
 func NewRedisConn(options Options) *redis.Pool {
 	var dialOptions []redis.DialOption
 	{
@@ -22,7 +23,7 @@ func NewRedisConn(options Options) *redis.Pool {
 		MaxIdle:   1,
 		MaxActive: 1,
 		Dial: func() (redis.Conn, error) {
-			return redis.DialURL(options.Redis.Uri, dialOptions...)
+			return redis.DialURL(options.Redis.URI, dialOptions...)
 		},
 	}
 
