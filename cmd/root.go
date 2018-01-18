@@ -21,7 +21,7 @@ var cfgFile string
 
 var rootCmd = &cobra.Command{
 	Use:   "cronmutex [flags] MUTEX-NAME COMMAND",
-	Short: "Redis-backed mutex to prevent running commands on multiple machines.",
+	Short: "Redis-backed mutex tool to prevent running commands on multiple machines.",
 	Args:  cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		options := lib.Options{}
