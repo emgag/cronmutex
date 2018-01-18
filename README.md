@@ -1,9 +1,9 @@
 # cronmutex
 
+[![Build Status](https://travis-ci.org/emgag/cronmutex.svg?branch=master)](https://travis-ci.org/emgag/cronmutex)
+[![Go Report Card](https://goreportcard.com/badge/github.com/emgag/cronmutex)](https://goreportcard.com/report/github.com/emgag/cronmutex)
+
 **ALPHA**: more or less feature complete, but not used in production yet.
-
-
-
 
 ## Usage
 
