@@ -221,7 +221,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is /etc/cronmutex.yml)")
 
-	rootCmd.Flags().BoolP("fire-n-forget","f", false, "Don't hold (extend) the lock while the command is running")
+	rootCmd.Flags().BoolP("fire-n-forget", "f", false, "Don't hold (extend) the lock while the command is running")
 	rootCmd.Flags().IntP("mutex-ttl", "m", 0, "The TTL of the lock in X seconds")
 	rootCmd.Flags().BoolP("noout", "n", false, "Don't dump STDOUT and STDERR from command")
 	rootCmd.Flags().Int32P("random-wait", "w", 0, "Wait for a random time between 0 and X seconds before acquiring the lock and starting the command")
