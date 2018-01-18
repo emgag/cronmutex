@@ -50,7 +50,7 @@ $ cd src/github.com/emgag/cronmutex
 $ make install
 ```
 
-will download the source and builds binary called _varnish-broadcast_ in $GOPATH/bin.
+will download the source and builds binary called _cronmutex_ in $GOPATH/bin.
 
 ## License
 
