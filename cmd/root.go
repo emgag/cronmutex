@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"errors"
+	"fmt"
 	"io"
 	"log"
 	"math/rand"
@@ -11,7 +13,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/emgag/cronmutex/internal/lib"
+	"github.com/emgag/cronmutex/internal/lib/config"
+	"github.com/emgag/cronmutex/internal/lib/redis"
+	"github.com/emgag/cronmutex/internal/lib/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"gopkg.in/redsync.v1"
@@ -22,9 +26,20 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "cronmutex [flags] MUTEX-NAME COMMAND",
 	Short: "Redis-backed mutex tool to prevent running commands on multiple machines.",
-	Args:  cobra.MinimumNArgs(2),
+	Args: func(cmd *cobra.Command, args []string) error {
+		if v, _ := cmd.Flags().GetBool("version"); !v && len(args) < 2 {
+			return errors.New("Requires at least mutex name and a command")
+		}
+
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-		options := lib.Options{}
+		if v, _ := cmd.Flags().GetBool("version"); v {
+			fmt.Printf("cronmutex %s -- %s\n", version.Version, version.Commit)
+			return
+		}
+
+		options := config.Options{}
 		err := viper.Unmarshal(&options)
 
 		if err != nil {
@@ -45,14 +60,17 @@ var rootCmd = &cobra.Command{
 		}()
 
 		if wait, err := cmd.Flags().GetInt32("random-wait"); err == nil && wait > 0 {
-			waitms := rand.Int31n(wait * 1000)
+			r := rand.New(rand.NewSource(time.Now().UnixNano()))
+			waitms := r.Int31n(wait * 1000)
+
 			if verbose {
 				log.Printf("Waiting for %dms", waitms)
 			}
+
 			time.Sleep(time.Duration(waitms) * time.Millisecond)
 		}
 
-		pool := lib.NewRedisConn(options)
+		pool := redis.NewRedisConn(options)
 		rs := redsync.New([]redsync.Pool{pool})
 
 		mutexName := args[0]
@@ -106,37 +124,31 @@ var rootCmd = &cobra.Command{
 
 		ex := exec.Command(args[1], args[2:]...)
 
-		// pipe command stdout to main stdout
-		stdout, err := ex.StdoutPipe()
+		if n, err := cmd.Flags().GetBool("noout"); err != nil || !n {
+			// pipe command stdout to main stdout
+			stdout, err := ex.StdoutPipe()
 
-		if err != nil {
-			log.Print(err)
-			return
+			if err != nil {
+				log.Print(err)
+				return
+			}
+
+			go func() {
+				io.Copy(os.Stdout, stdout)
+			}()
+
+			// pipe command stderr to main stderr
+			stderr, err := ex.StderrPipe()
+
+			if err != nil {
+				log.Print(err)
+				return
+			}
+
+			go func() {
+				io.Copy(os.Stderr, stderr)
+			}()
 		}
-
-		go func() {
-			io.Copy(os.Stdout, stdout)
-
-			//if _, err := io.Copy(os.Stdout, stdout); err != nil {
-			//	log.Print(err)
-			//}
-		}()
-
-		// pipe command stderr to main stderr
-		stderr, err := ex.StderrPipe()
-
-		if err != nil {
-			log.Print(err)
-			return
-		}
-
-		go func() {
-			io.Copy(os.Stderr, stderr)
-
-			//if _, err := io.Copy(os.Stderr, stderr); err != nil {
-			//	log.Print(err)
-			//}
-		}()
 
 		// start command
 		if err := ex.Start(); err != nil {
@@ -155,7 +167,7 @@ var rootCmd = &cobra.Command{
 		extend := time.Tick(mutexTTL - 250*time.Millisecond)
 
 		// clear extend channel if no extending required
-		if ff, err := cmd.Flags().GetBool("fire-n-forget"); err == nil && ff == true {
+		if ff, err := cmd.Flags().GetBool("fire-n-forget"); err == nil && ff {
 			extend = nil
 		}
 
@@ -217,6 +229,7 @@ func Execute() {
 	}
 }
 
+// init does actually initialize cli processing
 func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is /etc/cronmutex.yml)")
@@ -224,9 +237,10 @@ func init() {
 	rootCmd.Flags().BoolP("fire-n-forget", "f", false, "Don't hold (extend) the lock while the command is running")
 	rootCmd.Flags().IntP("mutex-ttl", "m", 0, "The TTL of the lock in X seconds")
 	rootCmd.Flags().BoolP("noout", "n", false, "Don't dump STDOUT and STDERR from command")
-	rootCmd.Flags().Int32P("random-wait", "w", 0, "Wait for a random time between 0 and X seconds before acquiring the lock and starting the command")
+	rootCmd.Flags().Int32P("random-wait", "w", 0, "Wait for a random duration between 0 and X seconds before acquiring the lock and starting the command")
 	rootCmd.Flags().IntP("ttl", "t", 0, "Kill command after X seconds. Default is to wait until the command finishes by itself")
 	rootCmd.Flags().BoolP("verbose", "v", false, "Tell what's happening with cronmutex")
+	rootCmd.Flags().Bool("version", false, "Print version and exit")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -244,7 +258,7 @@ func initConfig() {
 		viper.SetConfigFile(cfgFile)
 	} else {
 		viper.AddConfigPath("/etc")
-		viper.AddConfigPath("$HOME/.cronmutex")
+		viper.AddConfigPath("$HOME/.config")
 		viper.AddConfigPath(".")
 	}
 

@@ -1,13 +1,14 @@
-package lib
+package redis
 
 import (
 	"time"
 
+	"github.com/emgag/cronmutex/internal/lib/config"
 	"github.com/garyburd/redigo/redis"
 )
 
 // NewRedisConn creates new redis pool
-func NewRedisConn(options Options) *redis.Pool {
+func NewRedisConn(options config.Options) *redis.Pool {
 	var dialOptions []redis.DialOption
 	{
 		redis.DialConnectTimeout(5 * time.Second)

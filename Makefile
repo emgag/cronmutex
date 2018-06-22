@@ -1,17 +1,22 @@
-.PHONY: build run vet lint
+.PHONY: build install snapshot dist test vet lint fmt run clean docker
 OUT := cronmutex
 PKG := github.com/emgag/cronmutex
-VERSION := $(shell git describe --always --long --dirty)
 PKG_LIST := $(shell go list ${PKG}/... | grep -v /vendor/)
 GO_FILES := $(shell find . -name '*.go' | grep -v /vendor/)
 
 all: build
 
 build:
-	go build -v -o ${OUT} -ldflags="-X ${PKG}/internal/lib.Version=${VERSION}" ${PKG}
+	CGO_ENABLED=0 GOOS=linux go build -a -v -o ${OUT} ${PKG}
 
 install:
-	go install -v -o ${OUT} -ldflags="-X ${PKG}/internal/lib.Version=${VERSION}" ${PKG}
+	CGO_ENABLED=0 GOOS=linux go install -a -v ${PKG}
+
+snapshot:
+	goreleaser --snapshot --rm-dist
+
+dist:
+	goreleaser --rm-dist
 
 test:
 	@go test -v ${PKG_LIST}
@@ -27,9 +32,8 @@ lint:
 fmt:
 	@gofmt -l -w -s ${GO_FILES}
 
-run: build
-	./${OUT} listen
-
 clean:
-	-@rm ${OUT}
+	-@rm -vf ${OUT}
+	-@rm -vrf dist
+
 

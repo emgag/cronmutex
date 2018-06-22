@@ -1,4 +1,4 @@
-package lib
+package config
 
 // Options contains all settings read from the configuration file
 type Options struct {
