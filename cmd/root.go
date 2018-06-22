@@ -110,7 +110,13 @@ var rootCmd = &cobra.Command{
 			return
 		}
 
+		doUnlock := true
+
 		defer func() {
+			if !doUnlock {
+				return
+			}
+
 			if verbose {
 				log.Printf("Removing mutex again")
 			}
@@ -163,13 +169,8 @@ var rootCmd = &cobra.Command{
 			done <- ex.Wait()
 		}()
 
-		// extend ttl if command runs for longer
+		// check ttl to extend if command runs for longer
 		extend := time.Tick(mutexTTL - 250*time.Millisecond)
-
-		// clear extend channel if no extending required
-		if ff, err := cmd.Flags().GetBool("fire-n-forget"); err == nil && ff {
-			extend = nil
-		}
 
 		// command timeout channel
 		timeout := time.After(cmdTTL)
@@ -211,7 +212,16 @@ var rootCmd = &cobra.Command{
 				ex.Process.Kill()
 
 			case <-extend:
-				// still running, extend TTL
+				// lock ttl expiring & still running, extend TTL?
+				//
+				// clear extend channel if no extending required and don't release lock at the end
+				if ff, err := cmd.Flags().GetBool("fire-n-forget"); err == nil && ff {
+					log.Println("Mutex is expiring, not renewing")
+					extend = nil
+					doUnlock = false
+					continue
+				}
+
 				if verbose {
 					log.Println("Extending TTL")
 				}
