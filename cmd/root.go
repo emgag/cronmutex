@@ -16,9 +16,9 @@ import (
 	"github.com/emgag/cronmutex/internal/lib/config"
 	"github.com/emgag/cronmutex/internal/lib/redis"
 	"github.com/emgag/cronmutex/internal/lib/version"
+	"github.com/go-redsync/redsync"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gopkg.in/redsync.v1"
 )
 
 var cfgFile string

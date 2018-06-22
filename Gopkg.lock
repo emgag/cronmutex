@@ -8,13 +8,19 @@
   version = "v1.4.7"
 
 [[projects]]
-  name = "github.com/garyburd/redigo"
+  branch = "master"
+  name = "github.com/go-redsync/redsync"
+  packages = ["."]
+  revision = "fb16cf0d00f7a8587fa856f30973d91f6db8f4d3"
+
+[[projects]]
+  name = "github.com/gomodule/redigo"
   packages = [
     "internal",
     "redis"
   ]
-  revision = "a69d19351219b6dd56f274f96d85a7014a2ec34e"
-  version = "v1.6.0"
+  revision = "9c11da706d9b7902c6da69c592f75637793fe121"
+  version = "v2.0.0"
 
 [[projects]]
   branch = "master"
@@ -116,12 +122,6 @@
   version = "v0.3.0"
 
 [[projects]]
-  name = "gopkg.in/redsync.v1"
-  packages = ["."]
-  revision = "98dabdf1c8574561bf976911c14ff652c47b1ddf"
-  version = "v1.0.1"
-
-[[projects]]
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
@@ -130,6 +130,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b4f9b37c383b42d02d63b0f5d03e23ee57cf45fe7af984200f4a896098964364"
+  inputs-digest = "5afe94a6b0375250fd9ac0a504e6eadbe75f30cf5048c93397044f93882630ac"
   solver-name = "gps-cdcl"
   solver-version = 1

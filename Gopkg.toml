@@ -20,6 +20,9 @@
 #  version = "2.4.0"
 
 [[constraint]]
-  name = "gopkg.in/redsync.v1"
-  version = "1.0.1"
+  name = "github.com/go-redsync/redsync"
+  branch = "master"
 
+[[constraint]]
+  name = "github.com/gomodule/redigo"
+  version = "2.0.0"

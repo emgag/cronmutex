@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/emgag/cronmutex/internal/lib/config"
-	"github.com/garyburd/redigo/redis"
+	"github.com/gomodule/redigo/redis"
 )
 
 // NewRedisConn creates new redis pool
