@@ -5,6 +5,8 @@
 
 **BETA**: feature complete, but not used in production yet.
 
+cronmutex is a simple tool used to prevent a command (e.g. a cronjob) from running on multiple nodes simultaneously by placing a lock in a central redis server. Inspired by (and similar to) [cronlock](https://github.com/kvz/cronlock), but supporting connecting to SSL-tunneled redis hosts natively.
+
 ## Usage
 
 ```
@@ -53,6 +55,8 @@ mutex:
   prefix: EXAMPLEPREFIX.
   defaultTTL: 300
 ```
+
+Use *rediss://* scheme to connect to a TLS-tunneled redis host.
 
 ## Build
 
