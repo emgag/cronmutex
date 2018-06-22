@@ -12,3 +12,4 @@ archive:
   format: tar.gz
   files:
     - LICENSE
+    - cronmutex.yml.dist
