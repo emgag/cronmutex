@@ -41,7 +41,7 @@ Flags:
 
 ## Configuration
 
-Unless overwritten by the `--config` option, cronmutex looks for a [cronmutex.yml](/cronmutex.dist.yml) in */etc*, *$HOME/.config* and current working directory.
+Unless overwritten by the `--config` option, cronmutex looks for a [cronmutex.yml](/cronmutex.yml.dist) in */etc*, *$HOME/.config* and current working directory.
 
 Example config:
 
