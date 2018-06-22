@@ -24,7 +24,7 @@ import (
 var cfgFile string
 
 var rootCmd = &cobra.Command{
-	Use:   "cronmutex [flags] MUTEX-NAME COMMAND",
+	Use:   "cronmutex [flags] <MUTEX-NAME> <COMMAND>",
 	Short: "Redis-backed mutex tool to prevent running commands on multiple machines.",
 	Args: func(cmd *cobra.Command, args []string) error {
 		if v, _ := cmd.Flags().GetBool("version"); !v && len(args) < 2 {

@@ -3,12 +3,24 @@
 [![Build Status](https://travis-ci.org/emgag/cronmutex.svg?branch=master)](https://travis-ci.org/emgag/cronmutex)
 [![Go Report Card](https://goreportcard.com/badge/github.com/emgag/cronmutex)](https://goreportcard.com/report/github.com/emgag/cronmutex)
 
-**ALPHA**: more or less feature complete, but not used in production yet.
+**BETA**: feature complete, but not used in production yet.
 
 ## Usage
 
 ```
+Usage:
+  cronmutex [flags] <MUTEX-NAME> <COMMAND>
 
+Flags:
+  -c, --config string       config file (default is /etc/cronmutex.yml)
+  -f, --fire-n-forget       Don't hold (extend) the lock while the command is running
+  -h, --help                help for cronmutex
+  -m, --mutex-ttl int       The TTL of the lock in X seconds
+  -n, --noout               Don't dump STDOUT and STDERR from command
+  -w, --random-wait int32   Wait for a random duration between 0 and X seconds before acquiring the lock and starting the command
+  -t, --ttl int             Kill command after X seconds. Default is to wait until the command finishes by itself
+  -v, --verbose             Tell what's happening with cronmutex
+      --version             Print version and exit
 ```
 
 * `--config` Set path to config file instead of using the default */etc/cronmutex.yml* 
