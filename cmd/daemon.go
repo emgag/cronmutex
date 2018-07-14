@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/emgag/cronmutex/internal/lib/config"
 	"github.com/emgag/cronmutex/internal/lib/task"
@@ -31,41 +30,53 @@ var daemonCmd = &cobra.Command{
 			return
 		}
 
-		sigs := make(chan os.Signal, 1)
-		signal.Notify(sigs, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM)
+		hup := make(chan os.Signal, 1)
+		signal.Notify(hup, syscall.SIGHUP)
+
+		term := make(chan os.Signal, 1)
+		signal.Notify(term, syscall.SIGINT, syscall.SIGTERM)
+
+		f, err := ioutil.ReadFile(args[0])
+
+		if err != nil {
+			log.Fatalf("Failed loading cron file: %v\n", err)
+		}
+
+		cron, err := task.NewCron(f, &options)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		cron.Start()
 
 	exit:
 		for {
-			f, err := ioutil.ReadFile(args[0])
-
-			if err != nil {
-				log.Printf("Failed loading config: %v\n", err)
-				time.Sleep(10 * time.Second)
-				continue
-			}
-
-			cron, err := task.NewCron(f, &options)
-
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			cron.Start()
-
-			s := <-sigs
-
-			switch s {
-			case syscall.SIGHUP:
+			select {
+			case <-hup:
 				log.Printf("Reloading config")
-				continue
-			case syscall.SIGINT:
-				fallthrough
-			case syscall.SIGTERM:
+
+				f, err := ioutil.ReadFile(args[0])
+
+				if err != nil {
+					log.Printf("Failed loading cron file: %v\n", err)
+					continue
+				}
+
+				cron.Stop()
+
+				cron, err := task.NewCron(f, &options)
+
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				cron.Start()
+
+			case <-term:
 				log.Printf("Terminating")
 				break exit
 			}
-
-			cron.Stop()
 		}
 	},
 }
