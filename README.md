@@ -67,7 +67,7 @@ $ mkdir cronmutex && cd cronmutex
 $ export GOPATH=$PWD
 $ go get -d github.com/emgag/cronmutex
 $ cd src/github.com/emgag/cronmutex
-$ dep ensure -update
+$ dep ensure -vendor-only
 $ make install
 ```
 
