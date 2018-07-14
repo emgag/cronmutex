@@ -15,6 +15,7 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
+// Runner holds all options and runtime data to run a single command
 type Runner struct {
 	Cmd []string
 
@@ -35,19 +36,21 @@ type Runner struct {
 	RedisPool *redis.Pool
 }
 
+// RunnerPipe is used for reading command output
 type RunnerPipe struct {
 	Reader *io.PipeReader
 	Writer *io.PipeWriter
 }
 
+// Run runs the command, duh
 func (r *Runner) Run() (int, error) {
 	logger := log.New(r.LogBuffer.Writer, "["+r.MutexName+"] ", log.LstdFlags)
 
 	if r.RandomWait > 0 {
 		rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
-		waitms := rnd.Int31n(int32(r.RandomWait) * 1000)
-		logger.Printf("Waiting for %dms", waitms)
-		time.Sleep(time.Duration(waitms) * time.Millisecond)
+		wait := time.Duration(rnd.Int31n(int32(r.RandomWait*1000))) * time.Millisecond
+		logger.Printf("Waiting for %v", wait)
+		time.Sleep(wait)
 	}
 
 	mutexName := r.MutexPrefix + r.MutexName
@@ -158,16 +161,18 @@ status:
 	return 0, nil
 }
 
+// NewRunner returns new command runner
 func NewRunner(cmd []string) *Runner {
 	return &Runner{
 		Cmd:       cmd,
-		LogBuffer: NewRunnerPipe(),
-		Stderr:    NewRunnerPipe(),
-		Stdout:    NewRunnerPipe(),
+		LogBuffer: newRunnerPipe(),
+		Stderr:    newRunnerPipe(),
+		Stdout:    newRunnerPipe(),
 	}
 }
 
-func NewRunnerPipe() RunnerPipe {
+// newRunnerPipe creates new pipe instance
+func newRunnerPipe() RunnerPipe {
 	r, w := io.Pipe()
 
 	return RunnerPipe{r, w}

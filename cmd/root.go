@@ -12,7 +12,7 @@ var cfgFile string
 
 var rootCmd = &cobra.Command{
 	Use:   "cronmutex [flags] <MUTEX-NAME> <COMMAND>",
-	Short: "Redis-backed mutex tool to prevent running commands on multiple machines.",
+	Short: "Redis-backed cron daemon and mutex tool to prevent running commands on multiple machines.",
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

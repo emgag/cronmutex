@@ -1,0 +1,21 @@
+# Cron format see https://godoc.org/github.com/robfig/cron
+---
+- name: blubber
+  cron: 0,10,20,30,40,50 * * * * *
+  command:
+   - sleep
+   - 50
+  options:
+    randomwait: 2
+    fireandforget: false
+    mutexttl: 14
+    ttl: 10
+- name: miau
+  cron: 5,15,25,35,45,55 * * * * *
+  command:
+   - sleep
+   - 20
+  options:
+    randomwait: 2
+    ttl: 10
+
