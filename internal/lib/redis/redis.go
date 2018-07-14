@@ -8,7 +8,7 @@ import (
 )
 
 // NewRedisConn creates new redis pool
-func NewRedisConn(options config.Options) *redis.Pool {
+func NewRedisConn(options *config.Options) *redis.Pool {
 	var dialOptions []redis.DialOption
 	{
 		redis.DialConnectTimeout(5 * time.Second)

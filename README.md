@@ -5,27 +5,78 @@
 
 **BETA**: feature complete, but not used in production yet.
 
-cronmutex is a simple tool used to prevent a command (e.g. a cronjob) from running on multiple nodes simultaneously by placing a lock in a central redis server. Inspired by (and similar to) [cronlock](https://github.com/kvz/cronlock), but supporting connecting to SSL-tunneled redis hosts natively.
+cronmutex is a simple cron daemon and command runner used to prevent a command (e.g. a cronjob) from running on multiple nodes simultaneously by placing a lock in a central redis server. Inspired by (and its command runner mode is similar to) [cronlock](https://github.com/kvz/cronlock), but supporting connecting to SSL-tunneled redis hosts natively and allowing running it as a cron daemon.
 
 ## Usage
 
 ```
 Usage:
-  cronmutex [flags] <MUTEX-NAME> <COMMAND>
+  cronmutex [command]
+
+Available Commands:
+  daemon      Cron daemon mode
+  help        Help about any command
+  run         Run command
+  version     Print the version number of cronmutex
 
 Flags:
-  -c, --config string       config file (default is /etc/cronmutex.yml)
-  -f, --fire-n-forget       Don't hold (extend) the lock while the command is running
-  -h, --help                help for cronmutex
-  -m, --mutex-ttl int       The TTL of the lock in X seconds
-  -n, --noout               Don't dump STDOUT and STDERR from command
-  -w, --random-wait int32   Wait for a random duration between 0 and X seconds before acquiring the lock and starting the command
-  -t, --ttl int             Kill command after X seconds. Default is to wait until the command finishes by itself
-  -v, --verbose             Tell what's happening with cronmutex
-      --version             Print version and exit
+  -c, --config string   config file (default is /etc/cronmutex.yml)
+  -h, --help            help for cronmutex
 ```
 
-* `--config` Set path to config file instead of using the default */etc/cronmutex.yml* 
+### Global options
+
+* `--config` Set path to config file instead of using the default */etc/cronmutex.yml*
+
+### daemon 
+
+Run cronmutex in daemon mode, running configured cronjobs.
+
+```
+ Usage:
+  cronmutex daemon <cron.yml> [flags]
+```
+
+Example `cron.yml` file:
+
+```
+- name: job-name
+  cron: 0,10,20,30,40,50 * * * * *
+  command:
+    - sleep
+    - 50
+  options:
+    randomwait: 2
+    fireandforget: false
+    mutexttl: 14
+    ttl: 10
+- name: job-name 2
+  cron: 5,15,25,35,45,55 * * * * *
+  command:
+    - sleep
+    - 20
+  options:
+    randomwait: 2
+    ttl: 10
+```
+
+See https://godoc.org/github.com/robfig/cron for the cron entry format.
+
+### run 
+
+```
+Usage:
+  cronmutex run [flags] <mutex-name> <command>
+
+Flags:
+  -f, --fire-n-forget     Don't hold (extend) the lock while the command is running
+  -h, --help              help for run
+  -m, --mutex-ttl int     The TTL of the lock in X seconds
+  -n, --noout             Don't dump STDOUT and STDERR from command
+  -w, --random-wait int   Wait for a random duration between 0 and X seconds before acquiring the lock and starting the command
+  -t, --ttl int           Kill command after X seconds. Default is to wait until the command finishes by itself
+  -v, --verbose           Tell what's happening with cronmutex
+```
 
 * `--fire-n-forget` Don't hold (extend) the lock while the command is running. Just keep lock until the lock's TTL (`--mutex-ttl`) expires and continue running the command without holding the lock (unless a `--ttl` is set and the command gets killed before).
 
@@ -67,7 +118,7 @@ $ mkdir cronmutex && cd cronmutex
 $ export GOPATH=$PWD
 $ go get -d github.com/emgag/cronmutex
 $ cd src/github.com/emgag/cronmutex
-$ dep ensure -update
+$ dep ensure -vendor-only
 $ make install
 ```
 
