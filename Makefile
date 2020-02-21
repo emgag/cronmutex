@@ -1,8 +1,8 @@
-.PHONY: build install snapshot dist test vet lint fmt run clean docker
+.PHONY: build install snapshot dist test vet lint fmt clean
 OUT := cronmutex
 PKG := github.com/emgag/cronmutex
-PKG_LIST := $(shell go list ${PKG}/... | grep -v /vendor/)
-GO_FILES := $(shell find . -name '*.go' | grep -v /vendor/)
+PKG_LIST := $(shell go list ${PKG}/...)
+GO_FILES := $(shell find . -name '*.go')
 
 all: build
 
@@ -13,7 +13,7 @@ install:
 	CGO_ENABLED=0 GOOS=linux go install -a -v ${PKG}
 
 snapshot:
-	goreleaser --snapshot --rm-dist
+	goreleaser --snapshot --skip-publish --rm-dist
 
 dist:
 	goreleaser --rm-dist
