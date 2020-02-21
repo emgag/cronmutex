@@ -16,3 +16,7 @@ archives:
     - LICENSE
     - README.md
     - cronmutex.yml.dist
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
