@@ -1,9 +1,7 @@
 # cronmutex
 
-[![Build Status](https://travis-ci.org/emgag/cronmutex.svg?branch=master)](https://travis-ci.org/emgag/cronmutex)
+![build](https://github.com/emgag/cronmutex/workflows/build/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/emgag/cronmutex)](https://goreportcard.com/report/github.com/emgag/cronmutex)
-
-**BETA**: feature complete, but not used in production yet.
 
 cronmutex is a simple cron daemon and command runner used to prevent a command (e.g. a cronjob) from running on multiple nodes simultaneously by placing a lock in a central redis server. Inspired by (and its command runner mode is similar to) [cronlock](https://github.com/kvz/cronlock), but supporting connecting to SSL-tunneled redis hosts natively and allowing running it as a cron daemon.
 
@@ -60,7 +58,7 @@ Example `cron.yml` file:
     ttl: 10
 ```
 
-See https://godoc.org/github.com/robfig/cron for the cron entry format.
+See https://pkg.go.dev/github.com/robfig/cron?tab=doc for the cron entry format.
 
 ### run 
 
@@ -114,15 +112,10 @@ Use *rediss://* scheme to connect to a TLS-tunneled redis host.
 On Linux:
 
 ```
-$ mkdir cronmutex && cd cronmutex
-$ export GOPATH=$PWD
-$ go get -d github.com/emgag/cronmutex
-$ cd src/github.com/emgag/cronmutex
-$ dep ensure -vendor-only
-$ make install
+$ git clone github.com/emgag/cronmutex 
+$ cd cronmutex
+$ make 
 ```
-
-will download the source and builds binary called _cronmutex_ in $GOPATH/bin.
 
 ## License
 

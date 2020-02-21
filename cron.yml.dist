@@ -1,4 +1,4 @@
-# Cron format see https://godoc.org/github.com/robfig/cron
+# Cron format see https://pkg.go.dev/github.com/robfig/cron?tab=doc
 ---
 - name: blubber
   cron: 0,10,20,30,40,50 * * * * *
