@@ -2,6 +2,7 @@
 
 ![build](https://github.com/emgag/cronmutex/workflows/build/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/emgag/cronmutex)](https://goreportcard.com/report/github.com/emgag/cronmutex)
+![License](https://img.shields.io/github/license/emgag/cronmutex)
 
 cronmutex is a simple cron daemon and command runner used to prevent a command (e.g. a cronjob) from running on multiple nodes simultaneously by placing a lock in a central redis server. Inspired by (and its command runner mode is similar to) [cronlock](https://github.com/kvz/cronlock), but supporting connecting to SSL-tunneled redis hosts natively and allowing running it as a cron daemon.
 
