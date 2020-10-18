@@ -8,7 +8,7 @@ import (
 
 	"github.com/emgag/cronmutex/internal/lib/config"
 	"github.com/emgag/cronmutex/internal/lib/redis"
-	"github.com/robfig/cron"
+	"github.com/robfig/cron/v3"
 	"gopkg.in/yaml.v2"
 )
 
